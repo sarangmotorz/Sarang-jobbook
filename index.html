@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sarang Motors — Job Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2430;
+    --ink-soft:#2C3646;
+    --paper:#EEF1EE;
+    --paper-card:#FFFFFF;
+    --line:#D8DDD7;
+    --accent:#E08A3C;
+    --accent-dark:#C56C24;
+    --good:#2F8F6B;
+    --bad:#C0392B;
+    --muted:#6B7480;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; letter-spacing:.01em; text-transform:uppercase;
+  }
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  button{font-family:inherit; cursor:pointer;}
+  input, select{font-family:inherit;}
+
+  /* ---------- Login ---------- */
+  #loginScreen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:
+      linear-gradient(180deg, var(--ink) 0%, var(--ink) 40%, var(--paper) 40%);
+    padding:24px;
+  }
+  .ticket{
+    width:100%; max-width:400px; background:var(--paper-card);
+    border-radius:4px; box-shadow:0 24px 60px -20px rgba(0,0,0,.5);
+    position:relative; overflow:hidden;
+  }
+  .ticket::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:6px;
+    background:repeating-linear-gradient(90deg, var(--accent) 0 14px, transparent 14px 24px);
+  }
+  .ticket-head{ padding:32px 32px 8px; }
+  .ticket-head .eyebrow{
+    color:var(--accent-dark); font-size:12px; letter-spacing:.14em; font-weight:600;
+    text-transform:uppercase; font-family:'IBM Plex Mono',monospace;
+  }
+  .ticket-head h1{ font-size:34px; margin:4px 0 0; line-height:1; }
+  .ticket-head .sub{ color:var(--muted); font-size:14px; margin-top:6px; }
+  .ticket-body{ padding:24px 32px 32px; }
+  .field{ margin-bottom:16px; }
+  .field label{
+    display:block; font-size:12px; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--muted); font-weight:600; margin-bottom:6px;
+  }
+  .field input, .field select{
+    width:100%; padding:11px 12px; border:1.5px solid var(--line); border-radius:6px;
+    font-size:15px; background:#FBFBFA; color:var(--ink); transition:border-color .15s;
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--accent); background:#fff; }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:12px 20px; border-radius:6px; border:none; font-weight:600; font-size:14.5px;
+    letter-spacing:.02em;
+  }
+  .btn-primary{ background:var(--ink); color:#fff; width:100%; }
+  .btn-primary:hover{ background:var(--ink-soft); }
+  .btn-accent{ background:var(--accent); color:#fff; }
+  .btn-accent:hover{ background:var(--accent-dark); }
+  .btn-ghost{ background:transparent; color:var(--ink); border:1.5px solid var(--line); }
+  .btn-ghost:hover{ border-color:var(--ink); }
+  .btn-danger{ background:#FBEAE7; color:var(--bad); border:1.5px solid #F3CFC7; }
+  .link-row{ text-align:center; margin-top:16px; }
+  .link-row a{ color:var(--muted); font-size:13px; text-decoration:none; border-bottom:1px dotted var(--muted); cursor:pointer; }
+  .link-row a:hover{ color:var(--ink); border-color:var(--ink); }
+  .error-box{
+    background:#FBEAE7; border:1px solid #F3CFC7; color:var(--bad);
+    padding:10px 12px; border-radius:6px; font-size:13.5px; margin-bottom:14px;
+  }
+  .info-box{
+    background:#EAF3EE; border:1px solid #C9E4D5; color:var(--good);
+    padding:10px 12px; border-radius:6px; font-size:13.5px; margin-bottom:14px;
+  }
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(20,25,32,.55); display:none;
+    align-items:center; justify-content:center; padding:20px; z-index:50;
+  }
+  .overlay.show{ display:flex; }
+  .modal{
+    background:#fff; border-radius:10px; width:100%; max-width:420px;
+    padding:28px; box-shadow:0 30px 60px -20px rgba(0,0,0,.4);
+  }
+  .modal h3{ font-size:22px; margin:0 0 4px; }
+  .modal .desc{ color:var(--muted); font-size:13.5px; margin-bottom:18px; }
+  .choice-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .choice-card{
+    border:1.5px solid var(--line); border-radius:8px; padding:16px 12px; text-align:center;
+    background:#FBFBFA; transition:.15s;
+  }
+  .choice-card:hover{ border-color:var(--accent); background:#FFF8F1; }
+  .choice-card .ico{ font-size:22px; }
+  .choice-card .lbl{ font-weight:600; font-size:13.5px; margin-top:6px; }
+  .modal-actions{ display:flex; gap:10px; margin-top:20px; }
+  .modal-actions .btn{ flex:1; }
+  .back-link{ font-size:12.5px; color:var(--muted); cursor:pointer; display:inline-block; margin-bottom:10px; }
+
+  /* ---------- App shell ---------- */
+  #appScreen{ display:none; min-height:100vh; }
+  .shell{ display:flex; min-height:100vh; }
+  .sidebar{
+    width:230px; background:var(--ink); color:#fff; flex-shrink:0;
+    display:flex; flex-direction:column; padding:22px 0;
+  }
+  .sidebar .brand{ padding:0 22px 20px; border-bottom:1px solid rgba(255,255,255,.1); margin-bottom:14px; }
+  .sidebar .brand .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--accent); letter-spacing:.12em; }
+  .sidebar .brand h2{ font-size:24px; margin:2px 0 0; }
+  .navitem{
+    display:flex; align-items:center; gap:12px; padding:12px 22px; color:#C6CCD6;
+    font-size:14.5px; font-weight:500; cursor:pointer; border-left:3px solid transparent;
+  }
+  .navitem .num{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:#6B7480; }
+  .navitem:hover{ background:rgba(255,255,255,.05); color:#fff; }
+  .navitem.active{ background:rgba(224,138,60,.12); color:#fff; border-left-color:var(--accent); }
+  .navitem.active .num{ color:var(--accent); }
+  .sidebar-foot{ margin-top:auto; padding:14px 22px 0; border-top:1px solid rgba(255,255,255,.1); }
+  .whoami{ font-size:12.5px; color:#8B93A0; }
+  .whoami b{ color:#fff; display:block; font-size:14px; margin-bottom:2px; }
+  .foot-actions{ display:flex; gap:8px; margin-top:12px; }
+  .foot-actions button{
+    flex:1; background:rgba(255,255,255,.06); color:#C6CCD6; border:1px solid rgba(255,255,255,.12);
+    border-radius:6px; padding:8px; font-size:12px;
+  }
+  .foot-actions button:hover{ background:rgba(255,255,255,.12); color:#fff; }
+
+  .main{ flex:1; padding:32px 40px; overflow-x:auto; }
+  .page-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:22px; flex-wrap:wrap; gap:14px; }
+  .page-head .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--accent-dark); letter-spacing:.1em; }
+  .page-head h1{ font-size:32px; margin:2px 0 0; }
+  .month-picker{ display:flex; align-items:center; gap:8px; }
+  .month-picker input{ padding:8px 10px; border:1.5px solid var(--line); border-radius:6px; background:#fff; }
+
+  .card{ background:var(--paper-card); border:1px solid var(--line); border-radius:10px; padding:22px; margin-bottom:24px; }
+  .card h3{ font-size:19px; margin:0 0 16px; }
+  .form-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-bottom:16px; }
+
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  th{
+    text-align:left; padding:10px 12px; background:#F5F3EE; color:var(--muted);
+    text-transform:uppercase; font-size:11px; letter-spacing:.06em; border-bottom:2px solid var(--line);
+    white-space:nowrap;
+  }
+  td{ padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  tr:hover td{ background:#FBFAF7; }
+  .table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:8px; }
+  .empty-state{ padding:40px 20px; text-align:center; color:var(--muted); font-size:14px; }
+
+  .pill{ display:inline-block; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:600; }
+  .pill-good{ background:#EAF3EE; color:var(--good); }
+  .pill-bad{ background:#FBEAE7; color:var(--bad); }
+
+  .userlist-row{ display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); }
+  .userlist-row:last-child{ border-bottom:none; }
+  .userlist-row .u-name{ font-weight:600; font-size:14px; }
+  .userlist-row .u-meta{ font-size:12px; color:var(--muted); }
+
+  .toast{
+    position:fixed; bottom:24px; right:24px; background:var(--ink); color:#fff;
+    padding:14px 20px; border-radius:8px; font-size:14px; box-shadow:0 10px 30px rgba(0,0,0,.3);
+    display:none; z-index:100;
+  }
+  .toast.show{ display:block; }
+  .toast.bad{ background:var(--bad); }
+
+  @media(max-width:800px){
+    .shell{ flex-direction:column; }
+    .sidebar{ width:100%; flex-direction:row; overflow-x:auto; padding:14px; align-items:center; }
+    .sidebar .brand{ border:none; padding:0 14px 0 0; margin:0; }
+    .sidebar-foot{ display:none; }
+    .navitem{ padding:8px 14px; border-left:none; border-bottom:3px solid transparent; white-space:nowrap; }
+    .navitem.active{ border-left:none; border-bottom-color:var(--accent); }
+    .main{ padding:20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="loginScreen">
+  <div class="ticket">
+    <div class="ticket-head">
+      <div class="eyebrow">Sarang Motors · TVS Authorised</div>
+      <h1>Job Book</h1>
+      <div class="sub">Sales · Service · Expenses — sign in to continue</div>
+    </div>
+    <div class="ticket-body">
+      <div id="loginError"></div>
+      <div class="field">
+        <label>Login ID</label>
+        <input type="text" id="loginId" placeholder="e.g. Sarang" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" onclick="doLogin()">Sign in</button>
+      <div class="link-row"><a onclick="openForgotChoice()">Forgot password?</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Forgot password: choice ============ -->
+<div class="overlay" id="ovChoice">
+  <div class="modal">
+    <h3>Password help</h3>
+    <div class="desc">What do you need to do?</div>
+    <div class="choice-row">
+      <div class="choice-card" onclick="openChangePassword()">
+        <div class="ico">🔑</div>
+        <div class="lbl">Change Password</div>
+      </div>
+      <div class="choice-card" onclick="openForgotStart()">
+        <div class="ico">🆘</div>
+        <div class="lbl">Forgot Password</div>
+      </div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-ghost" style="flex:1" onclick="closeAllModals()">Cancel</button></div>
+  </div>
+</div>
+
+<!-- ============ Change password (know current password) ============ -->
+<div class="overlay" id="ovChange">
+  <div class="modal">
+    <span class="back-link" onclick="openForgotChoice()">← back</span>
+    <h3>Change Password</h3>
+    <div class="desc">Enter your login ID and current password.</div>
+    <div id="changeError"></div>
+    <div class="field"><label>Login ID</label><input type="text" id="cpLoginId"></div>
+    <div class="field"><label>Current Password</label><input type="password" id="cpCurrent"></div>
+    <div class="field"><label>New Password</label><input type="password" id="cpNew"></div>
+    <div class="field"><label>Confirm New Password</label><input type="password" id="cpConfirm"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Cancel</button>
+      <button class="btn btn-accent" onclick="submitChangePassword()">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Forgot password: step 1, enter login id ============ -->
+<div class="overlay" id="ovForgotStart">
+  <div class="modal">
+    <span class="back-link" onclick="openForgotChoice()">← back</span>
+    <h3>Forgot Password</h3>
+    <div class="desc">Enter the Login ID you need to reset.</div>
+    <div id="forgotStartError"></div>
+    <div class="field"><label>Login ID</label><input type="text" id="fpLoginId"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Cancel</button>
+      <button class="btn btn-accent" onclick="routeForgotPassword()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Forgot: Admin security question ============ -->
+<div class="overlay" id="ovSecurity">
+  <div class="modal">
+    <h3>Security Question</h3>
+    <div class="desc" id="securityQuestionText">What is your favorite color?</div>
+    <div id="securityError"></div>
+    <div class="field"><label>Answer</label><input type="text" id="securityAnswer"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Cancel</button>
+      <button class="btn btn-accent" onclick="submitSecurityAnswer()">Verify</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Forgot: User path, needs Admin auth ============ -->
+<div class="overlay" id="ovAdminAuth">
+  <div class="modal">
+    <h3>Admin Verification</h3>
+    <div class="desc">Resetting a User's password needs an Admin to confirm. Enter Admin credentials.</div>
+    <div id="adminAuthError"></div>
+    <div class="field"><label>Admin Login ID</label><input type="text" id="aaLoginId"></div>
+    <div class="field"><label>Admin Password</label><input type="password" id="aaPassword"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Cancel</button>
+      <button class="btn btn-accent" onclick="submitAdminAuth()">Verify</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Forgot: set new password (final step) ============ -->
+<div class="overlay" id="ovNewPassword">
+  <div class="modal">
+    <h3>Set New Password</h3>
+    <div class="desc" id="newPwFor"></div>
+    <div id="newPwError"></div>
+    <div class="field"><label>New Password</label><input type="password" id="npNew"></div>
+    <div class="field"><label>Confirm New Password</label><input type="password" id="npConfirm"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Cancel</button>
+      <button class="btn btn-accent" onclick="submitNewPassword()">Save Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Manage users (Admin/Super Admin) ============ -->
+<div class="overlay" id="ovUsers">
+  <div class="modal" style="max-width:480px">
+    <h3>Manage Users</h3>
+    <div class="desc">Admins can add or remove User accounts.</div>
+    <div id="usersError"></div>
+    <div id="userListBox" style="max-height:220px; overflow-y:auto; margin-bottom:18px;"></div>
+    <div class="field"><label>New User — Login ID</label><input type="text" id="nuLoginId"></div>
+    <div class="field"><label>New User — Name</label><input type="text" id="nuName"></div>
+    <div class="field"><label>Temporary Password</label><input type="text" id="nuTemp" value="Password"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAllModals()">Close</button>
+      <button class="btn btn-accent" onclick="submitCreateUser()">Add User</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="appScreen">
+  <div class="shell">
+    <div class="sidebar">
+      <div class="brand">
+        <div class="eyebrow">Sarang Motors</div>
+        <h2>Job Book</h2>
+      </div>
+      <div id="navItems"></div>
+      <div class="sidebar-foot">
+        <div class="whoami"><b id="whoName"></b><span id="whoRole"></span></div>
+        <div class="foot-actions">
+          <button onclick="openChangePassword()">Change PW</button>
+          <button onclick="logout()">Sign out</button>
+        </div>
+      </div>
+    </div>
+    <div class="main" id="mainContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   CONFIG — paste your Apps Script Web App deployment URL here
+   ========================================================= */
+const API_URL = "https://script.google.com/macros/s/AKfycbwS0UhXGMVbzjSbbP6PTRjkNJmpT7uONMwUj5rwydAfddXIylmibydp1ci2HvNpFTX7HA/exec";
+
+/* =========================================================
+   State (in-memory only — nothing is stored in the browser
+   between visits; users sign in again each session)
+   ========================================================= */
+let currentUser = null;   // {loginId, name, role}
+let currentSection = 'sales';
+let forgotTargetLoginId = null;
+let forgotTargetRole = null;
+
+const SECTIONS = {
+  sales: {
+    label: 'Sales', num: '01',
+    fields: [
+      {key:'Date', type:'date', label:'Date'},
+      {key:'Customer Name', type:'text', label:'Customer Name'},
+      {key:'Contact Number', type:'text', label:'Contact Number'},
+      {key:'Model', type:'text', label:'Model'},
+      {key:'Colour', type:'text', label:'Colour'},
+      {key:'Registration No', type:'text', label:'Registration No'},
+      {key:'Sale Amount', type:'number', label:'Sale Amount'},
+      {key:'Payment Mode', type:'select', label:'Payment Mode', options:['Cash','UPI','Card','Finance']},
+      {key:'Salesperson', type:'text', label:'Salesperson'},
+      {key:'Remarks', type:'text', label:'Remarks'},
+    ]
+  },
+  service: {
+    label: 'Service & Parts', num: '02',
+    fields: [
+      {key:'Date', type:'date', label:'Date'},
+      {key:'Customer Name', type:'text', label:'Customer Name'},
+      {key:'Job Card No', type:'text', label:'Job Card No'},
+      {key:'Type', type:'select', label:'Type', options:['Paid Service','1st Free Service','2nd Free Service','3rd Free Service','Running Repair','PSF']},
+      {key:'Model', type:'text', label:'Model'},
+      {key:'Bike No', type:'text', label:'Bike No'},
+      {key:'Payment Mode', type:'select', label:'Payment Mode', options:['Cash','UPI','Card']},
+      {key:'Payment Status', type:'select', label:'Payment Status', options:['Paid','Pending']},
+      {key:'Parts Total', type:'number', label:'Parts Total'},
+      {key:'Labour Total', type:'number', label:'Labour Total'},
+      {key:'Discount', type:'number', label:'Discount'},
+      {key:'AMC', type:'number', label:'AMC'},
+      {key:'Petrol', type:'number', label:'Petrol'},
+      {key:'Total', type:'number', label:'Total'},
+      {key:'Remarks', type:'text', label:'Remarks'},
+    ]
+  },
+  adminExpenses: {
+    label: 'Admin Expenses', num: '03',
+    fields: [
+      {key:'Date', type:'date', label:'Date'},
+      {key:'Category', type:'text', label:'Category'},
+      {key:'Description', type:'text', label:'Description'},
+      {key:'Amount', type:'number', label:'Amount'},
+      {key:'Paid By', type:'text', label:'Paid By'},
+      {key:'Remarks', type:'text', label:'Remarks'},
+    ]
+  },
+  salary: {
+    label: 'Salary & Others', num: '04', adminOnly:true,
+    fields: [
+      {key:'Date', type:'date', label:'Date'},
+      {key:'Employee Name', type:'text', label:'Employee Name'},
+      {key:'Role', type:'text', label:'Role'},
+      {key:'Amount', type:'number', label:'Amount'},
+      {key:'Payment Mode', type:'select', label:'Payment Mode', options:['Cash','Bank Transfer','UPI']},
+      {key:'Remarks', type:'text', label:'Remarks'},
+    ]
+  }
+};
+
+/* =========================================================
+   API helper
+   ========================================================= */
+async function api(action, payload) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action, ...payload })
+  });
+  return res.json();
+}
+
+function showToast(msg, bad) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (bad ? ' bad' : '');
+  setTimeout(() => t.className = 'toast', 2600);
+}
+
+function setErr(elId, msg) {
+  const el = document.getElementById(elId);
+  el.innerHTML = msg ? `<div class="error-box">${msg}</div>` : '';
+}
+
+/* =========================================================
+   Login
+   ========================================================= */
+async function doLogin() {
+  const loginId = document.getElementById('loginId').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  setErr('loginError', '');
+  if (!loginId || !password) { setErr('loginError', 'Enter both login ID and password.'); return; }
+  if (API_URL.startsWith('PASTE_')) { setErr('loginError', 'Backend not connected yet — see setup notes.'); return; }
+  const r = await api('login', { loginId, password });
+  if (!r.ok) { setErr('loginError', r.error); return; }
+  currentUser = r.user;
+  if (currentUser.mustChangePassword) {
+    showToast('Please set a new password to continue.');
+    openChangePassword();
+    document.getElementById('cpLoginId').value = currentUser.loginId;
+    return;
+  }
+  enterApp();
+}
+
+function enterApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  document.getElementById('whoName').textContent = currentUser.name;
+  document.getElementById('whoRole').textContent = currentUser.role;
+  buildNav();
+  currentSection = 'sales';
+  renderSection();
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginId').value = '';
+  document.getElementById('loginPassword').value = '';
+}
+
+/* =========================================================
+   Forgot / change password flow
+   ========================================================= */
+function closeAllModals() {
+  document.querySelectorAll('.overlay').forEach(o => o.classList.remove('show'));
+  ['loginError','changeError','forgotStartError','securityError','adminAuthError','newPwError','usersError'].forEach(id=>setErr(id,''));
+}
+function openForgotChoice(){ closeAllModals(); document.getElementById('ovChoice').classList.add('show'); }
+function openChangePassword(){ closeAllModals(); document.getElementById('ovChange').classList.add('show'); }
+function openForgotStart(){ closeAllModals(); document.getElementById('ovForgotStart').classList.add('show'); }
+
+async function submitChangePassword() {
+  const loginId = document.getElementById('cpLoginId').value.trim();
+  const currentPassword = document.getElementById('cpCurrent').value;
+  const newPassword = document.getElementById('cpNew').value;
+  const confirm = document.getElementById('cpConfirm').value;
+  if (!loginId || !currentPassword || !newPassword) { setErr('changeError','Fill in all fields.'); return; }
+  if (newPassword !== confirm) { setErr('changeError','New passwords do not match.'); return; }
+  const r = await api('changePassword', { loginId, currentPassword, newPassword });
+  if (!r.ok) { setErr('changeError', r.error); return; }
+  closeAllModals();
+  showToast('Password updated. Please sign in.');
+  if (currentUser) logout();
+}
+
+async function routeForgotPassword() {
+  const loginId = document.getElementById('fpLoginId').value.trim();
+  if (!loginId) { setErr('forgotStartError','Enter a login ID.'); return; }
+  const r = await api('whoIs', { loginId });
+  if (!r.ok) { setErr('forgotStartError', r.error); return; }
+  forgotTargetLoginId = loginId;
+  forgotTargetRole = r.role;
+  closeAllModals();
+  if (r.role === 'Super Admin') {
+    setErr('forgotStartError','');
+    alert('Super Admin password resets are not self-service. Please contact your system administrator/developer directly.');
+    return;
+  }
+  if (r.role === 'Admin') {
+    document.getElementById('ovSecurity').classList.add('show');
+  } else {
+    document.getElementById('ovAdminAuth').classList.add('show');
+  }
+}
+
+async function submitSecurityAnswer() {
+  const answer = document.getElementById('securityAnswer').value;
+  const r = await api('verifySecurityAnswer', { loginId: forgotTargetLoginId, answer });
+  if (!r.ok) { setErr('securityError', r.error); return; }
+  closeAllModals();
+  document.getElementById('newPwFor').textContent = `Setting a new password for ${forgotTargetLoginId}.`;
+  document.getElementById('ovNewPassword').classList.add('show');
+}
+
+async function submitAdminAuth() {
+  const adminLoginId = document.getElementById('aaLoginId').value.trim();
+  const adminPassword = document.getElementById('aaPassword').value;
+  const r = await api('verifyAdminForUserReset', { adminLoginId, adminPassword, targetLoginId: forgotTargetLoginId });
+  if (!r.ok) { setErr('adminAuthError', r.error); return; }
+  closeAllModals();
+  document.getElementById('newPwFor').textContent = `Setting a new password for ${forgotTargetLoginId}.`;
+  document.getElementById('ovNewPassword').classList.add('show');
+}
+
+async function submitNewPassword() {
+  const newPassword = document.getElementById('npNew').value;
+  const confirm = document.getElementById('npConfirm').value;
+  if (!newPassword) { setErr('newPwError','Enter a new password.'); return; }
+  if (newPassword !== confirm) { setErr('newPwError','Passwords do not match.'); return; }
+  const r = await api('resetPasswordAfterVerify', { loginId: forgotTargetLoginId, newPassword });
+  if (!r.ok) { setErr('newPwError', r.error); return; }
+  closeAllModals();
+  showToast('Password reset. Please sign in.');
+}
+
+/* =========================================================
+   Nav + sections
+   ========================================================= */
+function buildNav() {
+  const box = document.getElementById('navItems');
+  box.innerHTML = '';
+  Object.entries(SECTIONS).forEach(([key, s]) => {
+    if (s.adminOnly && currentUser.role === 'User') return;
+    const div = document.createElement('div');
+    div.className = 'navitem' + (key === currentSection ? ' active' : '');
+    div.innerHTML = `<span class="num">${s.num}</span><span>${s.label}</span>`;
+    div.onclick = () => { currentSection = key; renderSection(); };
+    div.dataset.key = key;
+    box.appendChild(div);
+  });
+  if (currentUser.role === 'Admin' || currentUser.role === 'Super Admin') {
+    const div = document.createElement('div');
+    div.className = 'navitem';
+    div.style.marginTop = '10px';
+    div.style.borderTop = '1px solid rgba(255,255,255,.1)';
+    div.style.paddingTop = '18px';
+    div.innerHTML = `<span class="num">＋</span><span>Manage Users</span>`;
+    div.onclick = openManageUsers;
+    box.appendChild(div);
+  }
+}
+
+function highlightNav() {
+  document.querySelectorAll('.navitem[data-key]').forEach(el => {
+    el.classList.toggle('active', el.dataset.key === currentSection);
+  });
+}
+
+function fieldInput(f) {
+  if (f.type === 'select') {
+    return `<select id="f_${cssId(f.key)}"><option value="">—</option>${f.options.map(o=>`<option>${o}</option>`).join('')}</select>`;
+  }
+  return `<input type="${f.type}" id="f_${cssId(f.key)}">`;
+}
+function cssId(key){ return key.replace(/[^a-zA-Z0-9]/g,'_'); }
+
+async function renderSection() {
+  highlightNav();
+  const s = SECTIONS[currentSection];
+  const main = document.getElementById('mainContent');
+  const today = new Date();
+  const ym = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0');
+
+  main.innerHTML = `
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">${s.num} / ${Object.keys(SECTIONS).length.toString().padStart(2,'0')}</div>
+        <h1>${s.label}</h1>
+      </div>
+      <div class="month-picker">
+        <label style="font-size:12px;color:var(--muted)">Month</label>
+        <input type="month" id="monthFilter" value="${ym}">
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>New Entry</h3>
+      <div class="form-grid">
+        ${s.fields.map(f=>`<div class="field"><label>${f.label}</label>${fieldInput(f)}</div>`).join('')}
+      </div>
+      <button class="btn btn-accent" onclick="submitRecord()">Save Entry</button>
+      <span id="recordMsg" style="margin-left:12px; font-size:13px;"></span>
+    </div>
+
+    <div class="card">
+      <h3>Records this month</h3>
+      <div id="tableBox"><div class="empty-state">Loading…</div></div>
+    </div>
+  `;
+  document.getElementById('monthFilter').onchange = loadRecords;
+  loadRecords();
+}
+
+async function submitRecord() {
+  const s = SECTIONS[currentSection];
+  const fields = {};
+  s.fields.forEach(f => fields[f.key] = document.getElementById('f_'+cssId(f.key)).value);
+  if (!fields['Date']) { document.getElementById('recordMsg').innerHTML = '<span style="color:var(--bad)">Date is required.</span>'; return; }
+  const r = await api('addRecord', { section: currentSection, fields, enteredBy: currentUser.loginId });
+  if (!r.ok) { document.getElementById('recordMsg').innerHTML = `<span style="color:var(--bad)">${r.error}</span>`; return; }
+  showToast('Entry saved.');
+  renderSection();
+}
+
+async function loadRecords() {
+  const month = document.getElementById('monthFilter').value;
+  const r = await api('getRecords', { section: currentSection, month, requestedBy: currentUser.loginId });
+  const box = document.getElementById('tableBox');
+  if (!r.ok) { box.innerHTML = `<div class="empty-state">${r.error}</div>`; return; }
+  if (!r.rows.length) { box.innerHTML = `<div class="empty-state">No entries yet for this month.</div>`; return; }
+  const cols = r.headers.filter(h => h !== 'Timestamp');
+  box.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+    <tbody>${r.rows.map(row=>`<tr>${cols.map(c=>`<td>${formatCell(row[c])}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table></div>`;
+}
+function formatCell(v){
+  if (v === '' || v === null || v === undefined) return '—';
+  return v;
+}
+
+/* =========================================================
+   Manage users (Admin / Super Admin)
+   ========================================================= */
+async function openManageUsers() {
+  closeAllModals();
+  document.getElementById('ovUsers').classList.add('show');
+  const r = await api('listUsers', { requestedBy: currentUser.loginId });
+  const box = document.getElementById('userListBox');
+  if (!r.ok) { setErr('usersError', r.error); return; }
+  box.innerHTML = r.users.map(u => `
+    <div class="userlist-row">
+      <div>
+        <div class="u-name">${u.name} <span class="pill ${u.active?'pill-good':'pill-bad'}">${u.role}</span></div>
+        <div class="u-meta">${u.loginId}</div>
+      </div>
+      ${u.role !== 'Super Admin' ? `<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="deleteUser('${u.loginId}')">Remove</button>` : ''}
+    </div>
+  `).join('');
+}
+async function deleteUser(loginId) {
+  if (!confirm(`Remove user "${loginId}"? This cannot be undone.`)) return;
+  const r = await api('deleteUser', { requestedBy: currentUser.loginId, targetLoginId: loginId });
+  if (!r.ok) { setErr('usersError', r.error); return; }
+  showToast('User removed.');
+  openManageUsers();
+}
+async function submitCreateUser() {
+  const newLoginId = document.getElementById('nuLoginId').value.trim();
+  const name = document.getElementById('nuName').value.trim();
+  const tempPassword = document.getElementById('nuTemp').value;
+  if (!newLoginId || !name || !tempPassword) { setErr('usersError','Fill in all fields.'); return; }
+  const r = await api('createUser', { requestedBy: currentUser.loginId, newLoginId, name, tempPassword });
+  if (!r.ok) { setErr('usersError', r.error); return; }
+  showToast('User added. They must change the temp password on first login.');
+  document.getElementById('nuLoginId').value=''; document.getElementById('nuName').value='';
+  openManageUsers();
+}
+</script>
+</body>
+</html>
